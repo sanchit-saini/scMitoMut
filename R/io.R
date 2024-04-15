@@ -21,7 +21,7 @@ read_mgatk <- function(mgatk_output_dir, prefix) {
         names(d) <- c("loc", "cell_barcode", "fwd_depth", "rev_depth")
         d$alt <- names(base_reads_files)[i]
         d
-}) %>% rbindlist()
+    }) %>% rbindlist()
 
     ## reference sequence
     ref_d <- data.table::fread(ref_file)
@@ -159,13 +159,14 @@ parse_table <- function(file, h5_file = "mut.h5", ...) {
     H5Fcreate(h5_file)
     h5f <- H5Fopen(h5_file)
 
+    
     ## mut_table
     h5g <- H5Gcreate(h5loc = h5f, name = "mut_table")
     plyr::d_ply(merge_d, "loc", function(x) {
         d_name <- paste0("chrM.", x$loc[1])
         x$loc <- NULL
         h5write(x, h5g, d_name)
-})
+    })
 
     ## cell list
     cell_list <- merge_d$cell_barcode %>% unique()
@@ -179,16 +180,54 @@ parse_table <- function(file, h5_file = "mut.h5", ...) {
     h5write(loc_list, h5f, "loc_list")
     h5write(loc_list, h5f, "loc_selected")
 
-    ## TODO: Do we need to close the H5 file?
-    #     H5Fclose(h5f)
-    #     H5Gclose(h5g)
-    #     h5closeAll()
-
     ## Remove the big data
     rm("merge_d")
     gc()
 
+    ## Close the H5 file when exit R session
+    .Last <- function() {
+        cat("Performing cleanup...\n")
+        # H5Fclose(h5f)
+        # H5Gclose(h5g)
+        h5closeAll()
+    }
+
     h5_file
+}
+
+#' Remove mtmutObj object
+#'
+#' This function closes the H5 file and remove mtmutObj object.
+#' Because the H5 file is not closed automatically when the mtmutObj object is removed. We need to close the H5 file manually. By using this function, we can remove the mtmutObj object and close the H5 file at the same time.
+#' @param x a mtmutObj object.
+#' @return no return value.
+#' @examples
+#' ## Use the example data
+#' f <- system.file("extdata", "mini_dataset.tsv.gz", package = "scMitoMut")
+#' ## Create a temporary h5 file
+#' ## In real case, we keep the h5 in project folder for future use
+#' f_h5_tmp <- tempfile(fileext = ".h5")
+#' ## Load the data with parse_table function
+#' f_h5 <- parse_table(f, sep = "\t", h5_file = f_h5_tmp)
+#' f_h5
+#' ## open the h5 file and create a mtmutObj object
+#' x <- open_h5_file(f_h5)
+#' x
+#' rm_mtmutObj(x)
+#' @export
+rm_mtmutObj <- function(x, envir = .GlobalEnv) {
+    var_name = deparse(substitute(x))
+    if (!is(x, "mtmutObj")) {
+        stop("x should be a mtmutObj object")
+    }
+    if (exists(var_name, envir = envir)) {
+        H5Fclose(x$h5f)
+        H5Gclose(x$mut_table)
+        rm(list = var_name, envir = envir)
+        cat(sprintf("Variable '%s' removed successfully.\n", var_name))
+    } else {
+        cat(sprintf("Variable '%s' not exists.\n", var_name))
+    }
 }
 
 
@@ -246,7 +285,7 @@ parse_mgatk <- function(dir, prefix, h5_file = "mut.h5") {
         d_name <- paste0("chrM.", x$loc[1])
         x$loc <- NULL
         h5write(x, h5g, d_name)
-})
+    })
 
     ## cell list
     cell_list <- merge_d$cell_barcode %>% unique()

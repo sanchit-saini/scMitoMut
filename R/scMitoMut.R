@@ -3,7 +3,7 @@
 #' scMitoMut is a tool for detecting mitochondrial mutations in single-cell sequencing data.
 #'
 #' @name scMitoMut
-#' @docType package
+#' @docType _PACKAGE
 #' @importFrom magrittr %>% %<>% extract extract2
 #' @importFrom data.table data.table rbindlist .N :=
 #' @importFrom plyr . count
