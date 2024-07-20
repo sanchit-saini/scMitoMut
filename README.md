@@ -1,8 +1,13 @@
 [![R](https://github.com/wenjie1991/scMitoMut/actions/workflows/r.yml/badge.svg)](https://github.com/wenjie1991/scMitoMut/actions/workflows/r.yml)
 
-# The `scMitoMut` package
+# The {scMitoMut} package
 
-The [**scMitoMut**](https://github.com/wenjie1991/scMitoMut) is a R/Bioconductor Package for Mitochondrial Mutation Analysis in Single-Cell Omics Data
+![scMitoMut](./CellBarcode_logo.png)
+
+The [**{scMitoMut}**](https://github.com/wenjie1991/scMitoMut) is a R/Bioconductor Package for lineage informative mitochondrial mutation calling in Single-Cell sequencing.
+
+The mitochondrial somatic mutations are promising lineage markers for single-cell sequencing data.
+The {scMitoMut} package provides a comprehensive function to call the lineage informative mitochondrial mutations using beta-binomial model.
 
 # Installation
 
@@ -15,19 +20,22 @@ install.packages("BiocManager")
 BiocManager::install("scMitoMut")
 ```
 
-## Install the devel version from GitHub
+## Install the devel version from GitHub or Bioconductor
 
 ```r
 # install.packages("devtools")
 devtools::install_github("wenjie1991/scMitoMut", build_vignettes = TRUE)
+# or
+BiocManager::install("scMitoMut", version = "devel")
 ```
 
 # Vignette
 
-The vignette can be found here: [https://github.com/wenjie1991/scMitoMut/blob/main/vignettes/Analysis_colon_cancer_dataset.Rmd]().
+A vignette can be found in [Bioconductor](https://www.bioconductor.org/packages/release/bioc/vignettes/scMitoMut/inst/doc/Analysis_colon_cancer_dataset.html).
 
-You can also access the HTML version by using the R command `browseVignettes('scMitoMut')` after installing the package.
+And the source code can be found [here](https://github.com/wenjie1991/scMitoMut/blob/main/vignettes/Analysis_colon_cancer_dataset.Rmd).
 
+You can also access the vignette by the R command `browseVignettes('scMitoMut')` after installing the package.
 
 # Mini Example
 
@@ -85,4 +93,3 @@ plot_af_coverage(x, "chrM.1227")
 # Contribution
 
 You are welcome to open an issue or make a pull request.
-
