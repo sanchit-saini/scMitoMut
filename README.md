@@ -2,7 +2,7 @@
 
 # The {scMitoMut} package
 
-![scMitoMut](./CellBarcode_logo.png)
+<img src="./CellBarcode_logo.png" width="200">
 
 The [**{scMitoMut}**](https://github.com/wenjie1991/scMitoMut) is a R/Bioconductor Package for lineage informative mitochondrial mutation calling in Single-Cell sequencing.
 
