@@ -56,7 +56,7 @@ run_model_fit(x, mc.cores = 1)
 # The filter options will be keeped in the object by memory
 # Next time you re-load the h5 file, the filter will be initiated as default
 x = filter_loc(x, 
-    min_cell = 10, 
+    min_cell = 5, 
     model = "bb", 
     p_threshold = 0.01, 
     p_adj_method = "fdr"
@@ -72,9 +72,6 @@ colors = c(
     Blood = "#f6bd60")
 ann_colors = list("SeuratCellTypes" = colors)
 
-# plot the heatmap for binary mutation
-plot_heatmap(x, type = "binary", cell_ann = cell_ann, ann_colors = ann_colors, percent_interp = 0.2)
-
 # plot the heatmap for p-value
 plot_heatmap(x, type = "p", cell_ann = cell_ann, ann_colors = ann_colors, percent_interp = 0.2)
 
@@ -82,7 +79,7 @@ plot_heatmap(x, type = "p", cell_ann = cell_ann, ann_colors = ann_colors, percen
 plot_heatmap(x, type = "af", cell_ann = cell_ann, ann_colors = ann_colors, percent_interp = 0.2)
 
 # check af~coverage for one loci
-plot_af_coverage(x, "chrM.200")
+plot_af_coverage(x, "chrM.1227")
 ```
 
 # Contribution

@@ -42,7 +42,7 @@ LinkingTo:
     Rcpp,
     RcppArmadillo
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Suggests: testthat (>= 3.0.0), BiocStyle, knitr, rmarkdown, VGAM, R.utils
 Config/testthat/edition: 3
 BugReports: https://github.com/wenjie1991/scMitoMut/issues
