@@ -88,7 +88,7 @@ read_locus <- function(mtmutObj, loc, maj_base = NULL) {
     d_select_maj_base[is.na(d_select_maj_base)] <- 0
 
     ## TODO: do we need this?
-    # d_select_maj_base = d_select_maj_base[alt_depth / coverage > 0.8]
+    # d_select_maj_base <- d_select_maj_base[alt_depth / coverage > 0.8]
 
     d_select_maj_base
 }
@@ -200,6 +200,7 @@ parse_table <- function(file, h5_file = "mut.h5", ...) {
 #' This function closes the H5 file and remove mtmutObj object.
 #' Because the H5 file is not closed automatically when the mtmutObj object is removed. We need to close the H5 file manually. By using this function, we can remove the mtmutObj object and close the H5 file at the same time.
 #' @param x a mtmutObj object.
+#' @param envir the environment where the mtmutObj object is stored.
 #' @return no return value.
 #' @examples
 #' ## Use the example data
@@ -216,7 +217,7 @@ parse_table <- function(file, h5_file = "mut.h5", ...) {
 #' rm_mtmutObj(x)
 #' @export
 rm_mtmutObj <- function(x, envir = .GlobalEnv) {
-    var_name = deparse(substitute(x))
+    var_name <- deparse(substitute(x))
     if (!is(x, "mtmutObj")) {
         stop("x should be a mtmutObj object")
     }

@@ -18,14 +18,23 @@ library(knitr)
 opts_chunk$set(echo = TRUE, TOC = TRUE)
 ```
 
-
-Install package:
+Install {scMitoMut} from Biocondcutor:
 
 ```{r, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
 BiocManager::install("scMitoMut")
 ```
 
-Load packages:
+or from github:
+
+```{r, eval=FALSE}
+if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes")
+remotes::install_github("wenjie1991/scMitoMut")
+```
+
+Load required packages.
 
 ```{r}
 library(scMitoMut)
@@ -38,57 +47,55 @@ library(rhdf5)
 
 ## Key functions 
 
-Key functions used in the scMitoMut package:
+Following are the key functions used in the scMitoMut package:
 
 - `parse_mgatk()`: Parses the mgatk output and saves the result in an H5 file.
 - `open_h5_file()`: Opens the H5 file and returns a "mtmutObj" object.
 - `subset_cell()`: Subsets the cells in the mtmutObj object.
 - `run_model_fit()`: Runs the model fitting and saves the results in the H5 file.
-- `mut_filter()`: Filters the mutations based on specific criteria.
-- `plot_heatmap()`: Plots a heatmap with different types of data, including p-values, allele frequencies, or binary mutation status.
-- `export_df()`, `export_af()`, `export_pval()`, and `export_binary()`: Export the mutation data in various formats.
+- `filter_loc()`: Filters the mutations based on criterias.
+- `plot_heatmap()`: Plots a heatmap for p-values, allele frequencies, or binary mutation status.
+- `export_df()`, `export_af()`, `export_pval()`, and `export_binary()`: Export the mutation data in `data.frame` format and the allele frequency, p-value, and binary mutation status in `data.matrix` format.
 
 ## Key conceptions
 
-- Somatic mutation: a mutation that occurs in a cell or a cell population, but not in the germline. 
-- AF or VAF: allele frequency or variant allele frequency. It is the ratio of the number of reads supporting the variant allele to the total number of reads.
-- p-value: the probability of observing a test statistic at least as extreme as the one that was observed, assuming that the null hypothesis is correct.
+- Somatic mutation: the mutation that occurs in cells after fertilizatoin.
+- AF or VAF: allele frequency (AF) or variant allele frequency (VAF). It is the ratio of the number of reads supporting the variant allele to the total number of reads covering that locus.
 
-**IMPORTANT**: In this vignette, I will use the term "mutation" to refer to the somatic mutation. For the somatic mutation, I use the dominant allele detected as the reference allele. And if the reference allele frequency is significant (FDR < 0.05) lowe, I will call the **locus** a mutation.
+**IMPORTANT**: In this vignette, I used the term "mutation" to refer to the lineage-related somatic mutation. For each mutation, I used the dominant allele as the reference allele. If the reference allele frequency is significantly (FDR < 0.05) lower, I will call the **locus** a mutation.
+
+<!-- TODO: Describing the modeling details.-->
 
 ## Background
 
-Single-cell genomics technology provides a powerful tool for understanding cellular heterogeneity and diversity within complex tissues.
+Single-cell genomics technology serves as a powerful tool for gaining insights into cellular heterogeneity and diversity within complex tissues.
 
-Mitochondrial DNA (mtDNA) is small, without chromatin, and has multiple copies within a cell. 
-Those features help us to get good mtDNA sequencing depth in single-cell ATAC seq data, which facilitates somatic mutation detections.
+Mitochondrial DNA (mtDNA) is characterized by its small size and the presence of multiple copies within a cell. These attributes contribute to achieving robust mtDNA sequencing coverage and depth in single-cell sequencing data, thereby enhancing the detection of somatic mutations without dropout.
 
-Together with chromatin openness data, mitochondrial somatic mutation can be used as a lineage label for helping us understand cellular differentiation, oncogenesis and development.
 
-In this vignette, the scMitoMut package is used to identify and visualize mtDNA single nucleic somatic mutations.
+In this vignette, the scMitoMut package is used to identify and visualize lineage-related mtDNA single nucleic somatic mutations.
 
-In the following analysis, scMitoMut was used to analyze the allele count data, which is the output of [mgatk](https://github.com/caleblareau/mgatk).
-The only few loci have been selected for the demonstration purpose to reduce the file size and the run time. 
-
-The full demostration can be found XXX, which shows the analysis begins with mgatk and CellRanger output.
+In the following analysis, scMitoMut was used to analyze the allele count data, which is the output of [mgatk](https://github.com/caleblareau/mgatk). 
+Only a few loci have been selected for demonstration purposes to reduce file size and run time. 
+The full dataset can be access from {Signac} [vignette](https://github.com/stuart-lab/signac/blob/1.9.0/vignettes/mito.Rmd).
 
 # Loading data
 
 We load the allele count table with the `parse_table` function. The allele count table consists with following columns:
 
 1. `loc`: the locus name
-2. `cell_barcode`: the cell barcode of the cell
+2. `cell_barcode`: the cell barcode in single-cell sequencing data
 3. `fwd_depth`: the forward read count of the allele
 4. `rev_depth`: the reverse read count of the allele
 5. `alt`: the allele name 
-6. `coverage`: the total read count of the locus
+6. `coverage`: the read count covering the locus
 7. `ref`: the reference allele name
 
-Instead of using the table above as input, the output from the `mgatk` also can be read in directly using the `parse_mgatk` function.
+Instead of using the table above as input, the output from `mgatk` can also be directly read using the `parse_mgatk` function.
 
-Using the `parse_table` function or `parse_mgatk` function, the allele count data are transformed into an `H5` file. 
-The `H5` file works as a database, which does not occupy the memory, and data can be accessed by querying. 
-It helps for better memory usage and faster loading.
+Using the `parse_table` function or `parse_mgatk` function, the allele count data are read and saved into an `H5` file. 
+The `H5` file works as a database, which does not occupy memory, and data can be randomly accessed by querying. 
+It helps with better memory usage and faster loading.
 
 The process may take some minutes. The return value is the `H5` file path.
 
@@ -103,7 +110,7 @@ f_h5 <- parse_table(f, h5_file = f_h5_tmp)
 f_h5
 ```
 
-Once we have the `H5` file, we can use `open_h5_file` function to load it and get an object named "mtmutObj". 
+After obtaining the `H5` file, the `open_h5_file` function can be utilized to load it, resulting in an object referred to as "mtmutObj".
 
 **Detail**: On this step, the `mtmutObj` has 6 slots
 - `h5f` is the `H5` file handle
@@ -131,6 +138,7 @@ So we will select the cells with annotation, which are good quality cells.
 ```{r}
 f <- system.file("extdata", "mini_dataset_cell_ann.csv", package = "scMitoMut")
 cell_ann <- read.csv(f, row.names = 1)
+
 ## Subset the cells, the cell id can be found by colnames() for the Seurat object
 x <- subset_cell(x, rownames(cell_ann))
 ```
@@ -146,9 +154,8 @@ Similarly, we can select loci by using the `subset_locus` function. It saves tim
 
 # Calculating mutation p-value
 
-Assuming an mtDNA locus's majority base has constant allele frequency in cells, the allele frequency mutation was caused by sequencing error or sampling.
-Based on that assumption, we build a null hypothesis that there are no mutations for that locus in the cell.
-Then we fit the allele frequency distribution and calculate the probability of observing allele frequency for a specific locus in a cell.
+We built an null-hypothesis that there are not lineage-related mutation for specific locus in all cells.
+Then we fit the allele frequency distribution with beta-binomial distribution and calculate the probability of observing allele frequency for a specific locus in a cell.
 If the probability is small, we can reject the null hypothesis and conclude that there is a mutation for that locus in the cell.
 
 To calculate the probability value (p-value), we run `run_calling` function, which has 2 arguments: 
@@ -164,12 +171,12 @@ The mutation calling is based on beta-binomial distribution.
 The mutation p-value is the probability that with the null hypothesis: there are no mutations for that locus in the cell.
 
 <!--Remove the following lines-->
-**Detail**: For a specific locus, we calculate the p-value using the following steps. 
-1. Defining the wild-type allele as the allele with the highest average AF among cells. 
-2. Fitting a 2 components binomial-mixture model to the AF of the wild-type allele for all cells. 
-Using the model, we define the wild-type cells if it has a probability >= 0.001 to be the wild type. 
-3. Using those wild-type cells, we fit the beta-binomial model. 
-4. At last, based on the model, we calculate the p-value of observing the AF of the wild-type allele in the cell.
+**Detail**: For each locus, we calculate the p-value using the following steps. 
+1. Defining the wild-type allele as the allele with the highest median allele frequency among cells. 
+2. Fitting a 2 components binomial-mixture distribution as classifier to select the likely wild-type cells.
+We define the likely wild-type cells if it has a probability >= 0.001 to be the wild type. 
+3. Using those likely wild-type cells, we fit the beta-binomial model. 
+4. At last, based on the model, we calculate the p-value of observing the allele frequency of the wild-type allele in specific cell. 
 
 ```{r, eval=TRUE}
 ## Run the model fitting
@@ -183,7 +190,7 @@ h5ls(x$h5f, recursive = FALSE)
 
 Then we will filter the mutations by using the `mut_filter` function with the following criteria:
 - The mutation has at least 5 cells mutant.
-- The FDR-adjusted p-value is less than 0.05.
+- The FDR (false discovery rate) adjusted p-value (mutation quality q-value) is less than 0.05.
 
 The output is a `data.frame` with 2 columns
 - `loc` is the locus
@@ -195,7 +202,7 @@ We can see that there are 12 loci after filtering.
 - `mtmutObj` is the `mtmutObj` object
 - `min_cell` is the minimum number of mutant cells
 - `p_adj_method` is the method used to adjust the p-value. 
-- `p_threshold` is the adjusted p-value threshold 
+- `p_threshold` is the adjusted p-value (q-value) threshold 
 
 ```{r}
 ## Filter mutation
@@ -212,36 +219,34 @@ x$loc_pass
 # Visualization
 
 We will visualize the mutation by heatmap using the `plot_heatmap` function. 
-It can draw a heatmap of p-value, AF, or binarized mutation status.
+It can draw a heatmap of q-value, allele frequency, or binarized mutation status.
 Its input is the `mtmutObj` object.
 It will independently apply all the filters we used in the `mut_filter` function, and select the cells and loci that pass the filter criteria.
 In all kinds of figures, the mutation status will be calculated, and the loci and cells are ordered by the mutation status.
 
+<!--TODO: make p value to be q-value-->
 
 **Detail**: The `plot_heatmap` arguments.
-- `mtmutObj` is the `scMitoMut` object
-- `pos_list` is the list of loci
-- `cell_ann` is the cell annotation
-- `ann_colors` is the color of the cell annotation
-- `type` is the type of the heatmap which can be `p`, `af`, or `binary`
-- `p_adj_method` is the method used to adjust the p-value
-- `p_threshold` is the adjusted p-value threshold to determine if a cell has mutation when selecting the cells and loci
-- `min_cell_n` is the minimum number of cells that have mutation when selecting the cells and loci
-- `p_binary` is the adjusted p-value threshold to get the binary mutation status
+- `mtmutObj` is the `scMitoMut` object.
+- `pos_list` is the list of loci.
+- `cell_ann` is the cell annotation.
+- `ann_colors` is the color of the cell annotation.
+- `type` is the type of the heatmap which can be `p`, `af`, or `binary`.
+- `p_adj_method` is the method used to adjust the p-value.
+- `p_threshold` is the adjusted p-value threshold to determine if a cell has mutation when selecting the cells and loci.
+- `min_cell_n` is the minimum number of cells that have mutation when selecting the cells and loci.
+- `p_binary` is the adjusted p-value threshold to get the binary mutation status.
 - `percent_interp` is the percentage overlap threshold between mutations, to determine if two mutations are correlated for interpolating the mutation status
-- `n_interp` is the number of overlapped cells to determine if two mutations are correlated for interpolating
+- `n_interp` is the number of overlapped cells to determine if two mutations are correlated for interpolating.
 
 The interpolation is based on the assumption that the mutation are unique, it is rare to have two mutation in the same population.
 Therefore, when two mutations are correlated, one of them is likely a subclone of the other one.
+The interpolation is utilized primarily for the purpose of ordering cells during visualization.
 
 ## Binary heatmap
 
-The binary heatmap will show the mutation status of each cell for each locus.
-The red means mutant, the blue means no mutant,
-and the grey means the missing value.
-
-For the mutation status, if two mutations are correlated, we set the high-frequency locus will get the mutant status from the low-frequency one.
-The correlation is determined by the percentage and number of cells overlapping between the two mutations.
+The binary heatmap displays the mutation status of each cell corresponding to each locus.
+The color red suggests the presence of a mutant, whereas blue indicates its absence, and white denotes a missing value.
 
 ```{r, fig.width = 12}
 ## Prepare the color for cell annotation
@@ -272,8 +277,8 @@ plot_heatmap(x,
 
 ## P value heatmap
 
-The p-value heatmap shows the adjusted p-value of each cell for each locus.
-The order of the cells and loci is determined by the mutation status.
+The p-value heatmap illustrates the adjusted p-values for each cell corresponding to each locus. 
+The arrangement of the cells and loci is based on their binary mutation status.
 
 ```{r, fig.width = 12}
 ## p value heatmap
@@ -285,8 +290,8 @@ plot_heatmap(x,
 
 ## AF heatmap
 
-The AF heatmap will show the AF of each cell for each locus.
-Similar to the p-value heatmap, the order of the cells and loci are determined by the mutation status.
+The allele frequency heatmap illustrates the allele frequency of each cell at each locus.
+The order of the cells and loci are determined by the mutation status too.
 
 ```{r, fig.width = 12}
 ## allele frequency heatmap
@@ -319,17 +324,19 @@ export_pval(x)[1:5, 1:5]
 export_binary(x)[1:5, 1:5]
 ```
 
-# Show the p value versus af plot
+# Show the p value, af plot versus cell types
 
-Lastly, we try to show the distribution of p value and AF value. 
-It is also a demonstration of how to extract the information from the H5 file and use it for further analysis.
+Lastly, we try to show the distribution of p value and allele frequency value versus cell types.
 
 ```{r, fig.width = 5}
+## The `m_df` is exported using the `export_df` function above.
 m_dt <- data.table(m_df)
 m_dt[, cell_type := cell_ann[as.character(m_dt$cell_barcode), "SeuratCellTypes"]]
 m_dt_sub <- m_dt[loc == "chrM.1227"]
 m_dt_sub[, sum((pval) < 0.01, na.rm = TRUE), by = cell_type]
 m_dt_sub[, sum((1 - af) > 0.05, na.rm = TRUE), by = cell_type]
+
+## The p value versus cell types
 ggplot(m_dt_sub) +
   aes(x = cell_type, y = -log10(pval), color = cell_type) +
   geom_jitter() +
@@ -337,6 +344,8 @@ ggplot(m_dt_sub) +
   theme_bw() +
   geom_hline(yintercept = -log10(0.01), linetype = "dashed") +
   ylab("-log10(FDR)")
+
+## The allele frequency versus cell types
 ggplot(m_dt_sub) +
   aes(x = cell_type, y = 1 - af, color = factor(cell_type)) +
   geom_jitter() +
@@ -344,6 +353,17 @@ ggplot(m_dt_sub) +
   theme_bw() +
   geom_hline(yintercept = 0.05, linetype = "dashed") +
   ylab("1 - Dominant Allele Frequency")
+
+## The p value versus allele frequency
+ggplot(m_dt_sub) +
+    aes(x = -log10(pval), y = 1 - af, color = factor(cell_type)) +
+    geom_point() +
+    scale_color_manual(values = colors) +
+    theme_bw() +
+    geom_hline(yintercept = 0.05, linetype = "dashed") +
+    geom_vline(xintercept = -log10(0.01), linetype = "dashed") +
+    xlab("-log10(FDR)") +
+    ylab("1 - Dominant Allele Frequency")
 ```
 
 # Session Info
@@ -351,5 +371,4 @@ ggplot(m_dt_sub) +
 ```{r}
 sessionInfo()
 ```
-
 

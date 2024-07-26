@@ -8,6 +8,8 @@ rm_mtmutObj(x, envir = .GlobalEnv)
 }
 \arguments{
 \item{x}{a mtmutObj object.}
+
+\item{envir}{the environment where the mtmutObj object is stored.}
 }
 \value{
 no return value.
