@@ -31,7 +31,7 @@ BiocManager::install("scMitoMut", version = "devel")
 
 # Vignette
 
-A vignette can be found in [Bioconductor](https://www.bioconductor.org/packages/release/bioc/vignettes/scMitoMut/inst/doc/Analysis_colon_cancer_dataset.html).
+A vignette can be found in [Bioconductor](https://www.bioconductor.org/packages/devel/bioc/vignettes/scMitoMut/inst/doc/Analysis_colon_cancer_dataset.html).
 
 And the source code can be found [here](https://github.com/wenjie1991/scMitoMut/blob/main/vignettes/Analysis_colon_cancer_dataset.Rmd).
 
