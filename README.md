@@ -1,8 +1,9 @@
-[![R](https://github.com/wenjie1991/scMitoMut/actions/workflows/r.yml/badge.svg)](https://github.com/wenjie1991/scMitoMut/actions/workflows/r.yml)
+<div align="center">
+<img src="https://raw.githubusercontent.com/wenjie1991/scMitoMut/devel/CellBarcode_logo.png" width="200">
+</div>
 
 # The {scMitoMut} package
-
-<img src="https://raw.githubusercontent.com/wenjie1991/scMitoMut/devel/CellBarcode_logo.png" width="200">
+[![R](https://github.com/wenjie1991/scMitoMut/actions/workflows/r.yml/badge.svg)](https://github.com/wenjie1991/scMitoMut/actions/workflows/r.yml)
 
 The [**{scMitoMut}**](https://github.com/wenjie1991/scMitoMut) is a R/Bioconductor Package for lineage informative mitochondrial mutation calling in Single-Cell sequencing.
 
